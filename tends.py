@@ -70,7 +70,7 @@ class MinionCard(Card):
 
     def get_stats(self):
         eff = None if len(self.effects) == 0 else self.effects[0].trigger
-        return (self.mana , self.attack, self.health, eff)
+        return (self.mana , (self.attack, self.health) , eff)
 
 
 class Minion(Stats):
@@ -117,7 +117,7 @@ class CardContainer:
         return self.card_list.pop(index)
 
     def __str__(self):
-        ret = "Card\t\tMana\tAttack\tHealth\n"
+        ret = "Card\t\tMana\tStats\tEffecs\n"
         return ret + "\n".join((str(i) for i in self.card_list))
 
 class Deck(CardContainer):
@@ -247,7 +247,7 @@ class GameBoard:
             
             while inp != "pass" and inp != "quit":
                 print(self)
-                inp = input("player " + str(self.curr_player) + ":\n")
+                inp = input("action:\n")
                 if inp == "att":
                     self.attack(self.curr_player , int(input()), int(input()))
                 if inp == "play":
@@ -306,6 +306,4 @@ def test_effect(owner, player_board, minion):
 
 gb = GameBoard()
 gb.run()
-
-print('ape') 
     
