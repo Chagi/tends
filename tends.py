@@ -306,4 +306,6 @@ def test_effect(owner, player_board, minion):
 
 gb = GameBoard()
 gb.run()
+
+print('ape') 
     
