@@ -56,6 +56,11 @@ class Card(Stats):
     def add_effect(self, effect):
         self.effects = self.effects + (effect,)
 
+    def trigger(self, name, args, kwargs):
+        for eff in self.effects:
+            if eff.trigger == name:
+                eff.func(args[0], self, *args[1:], **kwargs)
+
     def get_stats(self):
         return (self.mana)
 
@@ -90,6 +95,12 @@ class Minion(Stats):
     def damage(self, dam):
         self.health -= dam
 
+    def trigger(self, name, args, kwargs):
+        for eff in self.card.effects:
+            if eff.trigger == name:
+                eff.func(self.parents["Player"], *args, **kwargs)
+    
+    
     def get_stats(self):
         return (self.attack, self.health)
         
@@ -186,12 +197,16 @@ class Player:
     @trigger_dec
     def play_card(self, index):
         card = self.hand.pop(index)
+        gameboard = self.parents["GameBoard"]
+
+        card.trigger("on_play", [self], {})
+        
         if isinstance(card, MinionCard):
             minion = Minion(card, parent = self)
             self.board.add_minion(minion)
             for i in card.effects:
-                self.parents["GameBoard"].effects[i.trigger] = [minion]
-            print(gb.effects)
+                gameboard.effects[i.trigger] = [minion]
+            #print(gb.effects)
 
 
 
@@ -218,10 +233,7 @@ class GameBoard:
 
     def trigger(self, data):
         for minion in self.curr_player.board.minions + self.other_player.board.minions:
-            for effect in minion.card.effects:
-                    if effect.trigger == data.name:
-                        effect.func(minion.parents["Player"], *data.args, **data.kwargs )
-                        self.check_deaths()
+            minion.trigger(data.name, data.args, data.kwargs)
     
     def trigger2(self, data):
         try:
@@ -289,7 +301,7 @@ def gen_deck():
     for pos, val in enumerate(names):
         cartas.append( MinionCard(val, pos+1, pos+1, pos+2) )
 
-    eff = Effect(test_effect, "add_minion")
+    eff = Effect(test_effect, "on_play")
     cartas[1].add_effect(eff)
     
     deck1 = Deck()
@@ -299,11 +311,12 @@ def gen_deck():
 
     return deck1
 
-def test_effect(owner, player_board, minion):
+def test_effect(owner, card):
     gameboard = owner.parents["GameBoard"]
-    #player = owner.parents["Player"]
-    minion.damage(2)
+    for minion in gameboard.other_p(owner).board.minions:
+        minion.damage(1)
 
+    
 gb = GameBoard()
 gb.run()
     
