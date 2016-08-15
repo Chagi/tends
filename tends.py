@@ -318,5 +318,6 @@ def test_effect(owner, card):
 
     
 gb = GameBoard()
-gb.run()
+gb.initialize()
+#gb.run()
     
