@@ -180,8 +180,9 @@ class Player:
         self.deck = deck
         self.hand = Hand(parent = self)
         self.board = PlayerBoard(parent = self)
+        self.total_mana = 0 
+        self.mana = 0
 
-        
 
     def check_deaths(self):
         return self.board.check_deaths()
@@ -196,9 +197,12 @@ class Player:
 
     @trigger_dec
     def play_card(self, index):
+        if self.hand.card_list[index].mana > self.mana:
+            return
         card = self.hand.pop(index)
         gameboard = self.parents["GameBoard"]
 
+        self.mana -= card.mana
         card.trigger("on_play", [self], {})
         
         if isinstance(card, MinionCard):
@@ -208,7 +212,8 @@ class Player:
                 gameboard.effects[i.trigger] = [minion]
             #print(gb.effects)
 
-
+    def gain_total_mana(self, amount = 1):
+        self.total_mana += amount
 
 
 
@@ -250,7 +255,7 @@ class GameBoard:
                         self.check_deaths()
 
     def run(self):
-        self.initialize()
+        #self.initialize()
         
         inp = ""
         while inp != "quit":
@@ -271,6 +276,8 @@ class GameBoard:
     @trigger_dec
     def start_turn(self):
         self.curr_player.draw()
+        self.curr_player.gain_total_mana()
+        self.curr_player.mana = self.curr_player.total_mana
 
     @trigger_dec
     def end_turn(self):
@@ -289,6 +296,7 @@ class GameBoard:
         ret = "---------------------\nBoard: \n"
         ret += str(self.curr_player.board) + "\n\n"
         ret += str(self.other_player.board) + "\n\n"
+        ret += "Mana: " + str(self.curr_player.mana) + "\n"
         ret += "Hand: \n"
         ret += str(self.curr_player.hand)
         return ret
