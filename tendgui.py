@@ -47,8 +47,8 @@ class Window(tkinter.Tk):
             self.boardlists[i].updurp(self.boards[i])
 
     def play(self, ply, index):
-        
         self.gameboard.play_card(self.gameboard.players[ply],index)
+        self.gameboard.check_deaths()
         self.updurp()
 
     def attack(self, ply, index):
@@ -74,6 +74,10 @@ class Window(tkinter.Tk):
             time.sleep(10)
             for p in self.gameboard.players:
                 p.draw()
+                p.gain_total_mana()
+                p.mana = p.total_mana
+                p.mana = 100
+                print(p.mana)
             self.updurp()
 
 
@@ -92,7 +96,6 @@ class Listy(tkinter.Listbox):
 
     def select(self, evt):
         index = self.curselection()[0]
-        print(self.get(index))
 
 class HandListy(Listy):
     def __init__(self, frame, lis, index):
